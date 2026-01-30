@@ -1,0 +1,146 @@
+@page "/lumalog/traces"
+@using global::LumaLog.Abstractions
+@using global::LumaLog.Configuration
+@using Microsoft.Extensions.Options
+@inject ILumaLogService LumaLogService
+@inject IOptions<LumaLogOptions> Options
+@{
+    ViewData["Title"] = "Traces";
+    var basePath = Options.Value.DashboardPath.TrimEnd('/');
+
+    var filter = new TraceFilter
+    {
+        Page = int.TryParse(Request.Query["page"], out var p) ? p : 1,
+        PageSize = int.TryParse(Request.Query["pageSize"], out var ps) ? ps : 50,
+        SearchTerm = Request.Query["search"],
+        ServiceName = Request.Query["service"],
+        SortDescending = true
+    };
+
+    if (bool.TryParse(Request.Query["hasErrors"], out var hasErrors))
+        filter.HasErrors = hasErrors;
+
+    var traces = await LumaLogService.QueryTracesAsync(filter);
+}
+
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold">Traces</h1>
+        <div class="flex items-center space-x-4">
+            <a href="@basePath/api/export/traces?format=csv" class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50 transition-colors">Export CSV</a>
+            <a href="@basePath/api/export/traces?format=json" class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50 transition-colors">Export JSON</a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card rounded-xl p-4 border">
+        <form method="get" class="flex flex-wrap gap-4 items-end">
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-sm text-secondary mb-1">Search</label>
+                <input type="text" name="search" value="@filter.SearchTerm" placeholder="Search traces..."
+                       class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="w-40">
+                <label class="block text-sm text-secondary mb-1">Service</label>
+                <input type="text" name="service" value="@filter.ServiceName" placeholder="Filter by service"
+                       class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="w-40">
+                <label class="block text-sm text-secondary mb-1">Status</label>
+                <select name="hasErrors" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option value="">All</option>
+                    <option value="true" selected="@(filter.HasErrors == true)">With Errors</option>
+                    <option value="false" selected="@(filter.HasErrors == false)">Without Errors</option>
+                </select>
+            </div>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                Filter
+            </button>
+            <a href="@basePath/traces" class="px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors">Clear</a>
+        </form>
+    </div>
+
+    <!-- Results -->
+    <div class="card rounded-xl border overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-medium text-secondary">Trace ID</th>
+                        <th class="px-4 py-3 text-left font-medium text-secondary">Name</th>
+                        <th class="px-4 py-3 text-left font-medium text-secondary">Service</th>
+                        <th class="px-4 py-3 text-left font-medium text-secondary">Duration</th>
+                        <th class="px-4 py-3 text-left font-medium text-secondary">Spans</th>
+                        <th class="px-4 py-3 text-left font-medium text-secondary">Status</th>
+                        <th class="px-4 py-3 text-left font-medium text-secondary">Time</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    @if (traces.Items.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="7" class="px-4 py-8 text-center text-secondary">No traces found</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var trace in traces.Items)
+                        {
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer" onclick="window.location='@basePath/traces/@trace.TraceId'">
+                                <td class="px-4 py-3 font-mono text-xs">@trace.TraceId[..Math.Min(16, trace.TraceId.Length)]...</td>
+                                <td class="px-4 py-3 max-w-xs truncate">@trace.RootSpanName</td>
+                                <td class="px-4 py-3 text-secondary">@(trace.ServiceName ?? "-")</td>
+                                <td class="px-4 py-3">
+                                    @if (trace.TotalDurationMs.HasValue)
+                                    {
+                                        <span class="@(trace.TotalDurationMs > 1000 ? "text-yellow-600" : "")">
+                                            @(trace.TotalDurationMs >= 1000 ? $"{trace.TotalDurationMs / 1000.0:F2}s" : $"{trace.TotalDurationMs}ms")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-secondary">-</span>
+                                    }
+                                </td>
+                                <td class="px-4 py-3">@trace.SpanCount</td>
+                                <td class="px-4 py-3">
+                                    @if (trace.ErrorCount > 0)
+                                    {
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                            @trace.ErrorCount error(s)
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-ok text-sm">OK</span>
+                                    }
+                                </td>
+                                <td class="px-4 py-3 text-secondary whitespace-nowrap">@trace.StartTime.ToString("MMM dd HH:mm:ss")</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (traces.TotalPages > 1)
+        {
+            <div class="px-4 py-3 border-t flex items-center justify-between">
+                <div class="text-sm text-secondary">
+                    Showing @((traces.Page - 1) * traces.PageSize + 1) to @Math.Min(traces.Page * traces.PageSize, traces.TotalItems) of @traces.TotalItems
+                </div>
+                <div class="flex space-x-2">
+                    @if (traces.HasPreviousPage)
+                    {
+                        <a href="?page=@(traces.Page - 1)&search=@filter.SearchTerm&service=@filter.ServiceName" class="px-3 py-1 border rounded hover:bg-gray-50">Previous</a>
+                    }
+                    @if (traces.HasNextPage)
+                    {
+                        <a href="?page=@(traces.Page + 1)&search=@filter.SearchTerm&service=@filter.ServiceName" class="px-3 py-1 border rounded hover:bg-gray-50">Next</a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

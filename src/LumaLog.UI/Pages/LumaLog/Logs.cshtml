@@ -1,0 +1,133 @@
+@page "/lumalog/logs"
+@using global::LumaLog.Abstractions
+@using global::LumaLog.Configuration
+@using Microsoft.Extensions.Options
+@inject ILumaLogService LumaLogService
+@inject IOptions<LumaLogOptions> Options
+@{
+    ViewData["Title"] = "Logs";
+    var basePath = Options.Value.DashboardPath.TrimEnd('/');
+
+    var filter = new LogFilter
+    {
+        Page = int.TryParse(Request.Query["page"], out var p) ? p : 1,
+        PageSize = int.TryParse(Request.Query["pageSize"], out var ps) ? ps : 50,
+        SearchTerm = Request.Query["search"],
+        TraceId = Request.Query["traceId"],
+        SortDescending = true
+    };
+
+    if (Enum.TryParse<LogLevel>(Request.Query["minLevel"], out var minLevel))
+        filter.MinLevel = minLevel;
+
+    var logs = await LumaLogService.QueryLogsAsync(filter);
+}
+
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold">Logs</h1>
+        <div class="flex items-center space-x-4">
+            <a href="@basePath/api/export/logs?format=csv" class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50 transition-colors">Export CSV</a>
+            <a href="@basePath/api/export/logs?format=json" class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50 transition-colors">Export JSON</a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card rounded-xl p-4 border">
+        <form method="get" class="flex flex-wrap gap-4 items-end">
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-sm text-secondary mb-1">Search</label>
+                <input type="text" name="search" value="@filter.SearchTerm" placeholder="Search messages..."
+                       class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div class="w-40">
+                <label class="block text-sm text-secondary mb-1">Min Level</label>
+                <select name="minLevel" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option value="">All</option>
+                    @foreach (LogLevel level in Enum.GetValues<LogLevel>())
+                    {
+                        <option value="@level" selected="@(filter.MinLevel == level)">@level</option>
+                    }
+                </select>
+            </div>
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-sm text-secondary mb-1">Trace ID</label>
+                <input type="text" name="traceId" value="@filter.TraceId" placeholder="Filter by trace..."
+                       class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                Filter
+            </button>
+            <a href="@basePath/logs" class="px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors">Clear</a>
+        </form>
+    </div>
+
+    <!-- Results -->
+    <div class="card rounded-xl border overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 dark:bg-gray-800">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-medium text-secondary">Level</th>
+                        <th class="px-4 py-3 text-left font-medium text-secondary">Message</th>
+                        <th class="px-4 py-3 text-left font-medium text-secondary">Source</th>
+                        <th class="px-4 py-3 text-left font-medium text-secondary">Time</th>
+                        <th class="px-4 py-3 text-left font-medium text-secondary">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    @if (logs.Items.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="5" class="px-4 py-8 text-center text-secondary">No logs found</td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var log in logs.Items)
+                        {
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer" onclick="window.location='@basePath/logs/@log.Id'">
+                                <td class="px-4 py-3">
+                                    <span class="level-@log.Level.ToString().ToLower() font-medium">@log.Level</span>
+                                </td>
+                                <td class="px-4 py-3 max-w-md truncate">@log.Message</td>
+                                <td class="px-4 py-3 text-secondary max-w-xs truncate">@log.Source</td>
+                                <td class="px-4 py-3 text-secondary whitespace-nowrap">@log.CreatedAt.ToString("MMM dd HH:mm:ss")</td>
+                                <td class="px-4 py-3">
+                                    @if (log.IsResolved)
+                                    {
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Resolved</span>
+                                    }
+                                    else if (log.Level >= LogLevel.Error)
+                                    {
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Open</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (logs.TotalPages > 1)
+        {
+            <div class="px-4 py-3 border-t flex items-center justify-between">
+                <div class="text-sm text-secondary">
+                    Showing @((logs.Page - 1) * logs.PageSize + 1) to @Math.Min(logs.Page * logs.PageSize, logs.TotalItems) of @logs.TotalItems
+                </div>
+                <div class="flex space-x-2">
+                    @if (logs.HasPreviousPage)
+                    {
+                        <a href="?page=@(logs.Page - 1)&search=@filter.SearchTerm&minLevel=@filter.MinLevel" class="px-3 py-1 border rounded hover:bg-gray-50">Previous</a>
+                    }
+                    @if (logs.HasNextPage)
+                    {
+                        <a href="?page=@(logs.Page + 1)&search=@filter.SearchTerm&minLevel=@filter.MinLevel" class="px-3 py-1 border rounded hover:bg-gray-50">Next</a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

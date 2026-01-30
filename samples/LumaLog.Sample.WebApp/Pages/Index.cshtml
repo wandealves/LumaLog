@@ -1,0 +1,90 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "LumaLog Sample";
+}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">LumaLog Sample Application</h1>
+        <p class="text-xl text-gray-600">Test the logging and distributed tracing capabilities</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold mb-4">Dashboard</h3>
+            <p class="text-gray-600 mb-4">View logs, traces, and statistics in the LumaLog dashboard.</p>
+            <a href="/lumalog" class="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                Open Dashboard
+            </a>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold mb-4">Test Endpoint</h3>
+            <p class="text-gray-600 mb-4">Call a simple API endpoint that logs an information message.</p>
+            <button onclick="callApi('/api/test')" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                Call /api/test
+            </button>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold mb-4">Error Endpoint</h3>
+            <p class="text-gray-600 mb-4">Trigger an exception to test error logging.</p>
+            <button onclick="callApi('/api/error')" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                Call /api/error
+            </button>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold mb-4">Slow Endpoint</h3>
+            <p class="text-gray-600 mb-4">Test a slow operation to see duration tracking.</p>
+            <button onclick="callApi('/api/slow')" class="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors">
+                Call /api/slow
+            </button>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold mb-4">View Logs</h3>
+            <p class="text-gray-600 mb-4">Browse all captured logs with filtering.</p>
+            <a href="/lumalog/logs" class="inline-block bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                View Logs
+            </a>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold mb-4">View Traces</h3>
+            <p class="text-gray-600 mb-4">Explore distributed traces and spans.</p>
+            <a href="/lumalog/traces" class="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                View Traces
+            </a>
+        </div>
+    </div>
+
+    <div id="response" class="hidden bg-gray-100 rounded-lg p-4 mb-8">
+        <h4 class="font-semibold mb-2">API Response:</h4>
+        <pre id="responseContent" class="text-sm overflow-x-auto"></pre>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    async function callApi(url) {
+        const responseDiv = document.getElementById('response');
+        const responseContent = document.getElementById('responseContent');
+
+        responseDiv.classList.remove('hidden');
+        responseContent.textContent = 'Loading...';
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            responseContent.textContent = JSON.stringify(data, null, 2);
+            responseDiv.className = 'bg-green-100 rounded-lg p-4 mb-8';
+        } catch (error) {
+            responseContent.textContent = 'Error: ' + error.message;
+            responseDiv.className = 'bg-red-100 rounded-lg p-4 mb-8';
+        }
+    }
+</script>
+}

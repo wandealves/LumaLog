@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>LumaLog.Serilog</RootNamespace>
+    <AssemblyName>LumaLog.Serilog</AssemblyName>
+    <Description>Serilog integration for LumaLog</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog" Version="4.2.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LumaLog\LumaLog.csproj" />
+    <ProjectReference Include="..\LumaLog.AspNetCore\LumaLog.AspNetCore.csproj" />
+  </ItemGroup>
+
+</Project>

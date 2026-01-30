@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\LumaLog\LumaLog.csproj" />
+    <ProjectReference Include="..\..\src\LumaLog.AspNetCore\LumaLog.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\LumaLog.UI\LumaLog.UI.csproj" />
+    <ProjectReference Include="..\..\src\LumaLog.Serilog\LumaLog.Serilog.csproj" />
+    <ProjectReference Include="..\..\src\LumaLog.SqlServer\LumaLog.SqlServer.csproj" />
+  </ItemGroup>
+
+</Project>

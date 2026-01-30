@@ -1,0 +1,191 @@
+@page "/lumalog/traces/{traceId}"
+@using global::LumaLog.Abstractions
+@using global::LumaLog.Configuration
+@using Microsoft.Extensions.Options
+@inject ILumaLogService LumaLogService
+@inject IOptions<LumaLogOptions> Options
+@{
+    var basePath = Options.Value.DashboardPath.TrimEnd('/');
+    var traceId = RouteData.Values["traceId"]?.ToString() ?? "";
+    var trace = await LumaLogService.GetTraceAsync(traceId);
+
+    ViewData["Title"] = trace != null ? $"Trace {traceId[..Math.Min(8, traceId.Length)]}" : "Trace Not Found";
+}
+
+@if (trace == null)
+{
+    <div class="text-center py-12">
+        <h1 class="text-2xl font-bold text-secondary">Trace Not Found</h1>
+        <a href="@basePath/traces" class="mt-4 inline-block text-blue-600 hover:underline">Back to traces</a>
+    </div>
+}
+else
+{
+    <div class="space-y-6">
+        <div class="flex items-center space-x-4">
+            <a href="@basePath/traces" class="text-secondary hover:text-blue-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+            </a>
+            <h1 class="text-2xl font-bold">Trace Details</h1>
+            @if (trace.ErrorCount > 0)
+            {
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                    @trace.ErrorCount error(s)
+                </span>
+            }
+            else
+            {
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                    OK
+                </span>
+            }
+        </div>
+
+        <!-- Summary -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            <div class="card rounded-xl border p-4">
+                <p class="text-sm text-secondary">Trace ID</p>
+                <p class="font-mono text-xs mt-1 truncate" title="@trace.TraceId">@trace.TraceId</p>
+            </div>
+            <div class="card rounded-xl border p-4">
+                <p class="text-sm text-secondary">Service</p>
+                <p class="font-medium mt-1">@(trace.ServiceName ?? "-")</p>
+            </div>
+            <div class="card rounded-xl border p-4">
+                <p class="text-sm text-secondary">Duration</p>
+                <p class="font-medium mt-1">
+                    @if (trace.TotalDurationMs.HasValue)
+                    {
+                        @(trace.TotalDurationMs >= 1000 ? $"{trace.TotalDurationMs / 1000.0:F2}s" : $"{trace.TotalDurationMs}ms")
+                    }
+                    else
+                    {
+                        <span class="text-secondary">-</span>
+                    }
+                </p>
+            </div>
+            <div class="card rounded-xl border p-4">
+                <p class="text-sm text-secondary">Spans</p>
+                <p class="font-medium mt-1">@trace.SpanCount</p>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="card rounded-xl border p-6">
+            <h3 class="font-semibold mb-4">Span Timeline</h3>
+            <div class="space-y-2">
+                @{
+                    var totalDuration = trace.TotalDurationMs ?? 1;
+                    var startTime = trace.StartTime;
+
+                    // Build hierarchy
+                    var rootSpans = trace.Spans.Where(s => s.ParentSpanId == null).ToList();
+
+                    void RenderSpan(TraceEntry span, int depth)
+                    {
+                        var offsetMs = (span.StartTime - startTime).TotalMilliseconds;
+                        var durationMs = span.DurationMs ?? (DateTimeOffset.UtcNow - span.StartTime).TotalMilliseconds;
+                        var leftPercent = Math.Max(0, Math.Min(100, (offsetMs / totalDuration) * 100));
+                        var widthPercent = Math.Max(1, Math.Min(100 - leftPercent, (durationMs / totalDuration) * 100));
+
+                        <div class="flex items-center py-1" style="padding-left: @(depth * 20)px">
+                            <div class="w-48 flex-shrink-0 pr-4">
+                                <p class="text-sm truncate" title="@span.Name">@span.Name</p>
+                                <p class="text-xs text-secondary">@(span.DurationMs.HasValue ? $"{span.DurationMs}ms" : "running...")</p>
+                            </div>
+                            <div class="flex-1 h-8 bg-gray-100 dark:bg-gray-800 rounded relative">
+                                <div class="span-bar absolute top-1 @(span.Status == SpanStatus.Error ? "bg-red-500" : "bg-blue-500")"
+                                     style="left: @leftPercent%; width: @widthPercent%;"
+                                     title="@span.Name: @(span.DurationMs ?? 0)ms">
+                                </div>
+                            </div>
+                        </div>
+
+                        var children = trace.Spans.Where(s => s.ParentSpanId == span.SpanId).OrderBy(s => s.StartTime);
+                        foreach (var child in children)
+                        {
+                            RenderSpan(child, depth + 1);
+                        }
+                    }
+                }
+
+                @foreach (var span in rootSpans.OrderBy(s => s.StartTime))
+                {
+                    RenderSpan(span, 0);
+                }
+            </div>
+        </div>
+
+        <!-- Spans Table -->
+        <div class="card rounded-xl border">
+            <div class="p-4 border-b">
+                <h3 class="font-semibold">All Spans</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-medium text-secondary">Name</th>
+                            <th class="px-4 py-3 text-left font-medium text-secondary">Span ID</th>
+                            <th class="px-4 py-3 text-left font-medium text-secondary">Duration</th>
+                            <th class="px-4 py-3 text-left font-medium text-secondary">Status</th>
+                            <th class="px-4 py-3 text-left font-medium text-secondary">Start Time</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        @foreach (var span in trace.Spans.OrderBy(s => s.StartTime))
+                        {
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                <td class="px-4 py-3">@span.Name</td>
+                                <td class="px-4 py-3 font-mono text-xs">@span.SpanId</td>
+                                <td class="px-4 py-3">@(span.DurationMs.HasValue ? $"{span.DurationMs}ms" : "-")</td>
+                                <td class="px-4 py-3">
+                                    @if (span.Status == SpanStatus.Error)
+                                    {
+                                        <span class="status-error">Error</span>
+                                    }
+                                    else if (span.Status == SpanStatus.Ok)
+                                    {
+                                        <span class="status-ok">OK</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-secondary">Unset</span>
+                                    }
+                                </td>
+                                <td class="px-4 py-3 text-secondary">@span.StartTime.ToString("HH:mm:ss.fff")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Related Logs -->
+        @if (trace.RelatedLogs.Count > 0)
+        {
+            <div class="card rounded-xl border">
+                <div class="p-4 border-b flex items-center justify-between">
+                    <h3 class="font-semibold">Related Logs (@trace.RelatedLogs.Count)</h3>
+                    <a href="@basePath/logs?traceId=@traceId" class="text-sm text-blue-600 hover:underline">View all</a>
+                </div>
+                <div class="divide-y">
+                    @foreach (var log in trace.RelatedLogs.Take(10))
+                    {
+                        <a href="@basePath/logs/@log.Id" class="block p-4 hover:bg-gray-50 dark:hover:bg-gray-800">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <span class="level-@log.Level.ToString().ToLower() font-medium text-sm">@log.Level</span>
+                                    <span class="truncate max-w-md">@log.Message</span>
+                                </div>
+                                <span class="text-xs text-secondary">@log.CreatedAt.ToString("HH:mm:ss.fff")</span>
+                            </div>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}

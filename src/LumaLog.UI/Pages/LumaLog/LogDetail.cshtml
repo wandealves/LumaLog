@@ -1,0 +1,204 @@
+@page "/lumalog/logs/{id:long}"
+@using global::LumaLog.Abstractions
+@using global::LumaLog.Configuration
+@using Microsoft.Extensions.Options
+@inject ILumaLogService LumaLogService
+@inject IOptions<LumaLogOptions> Options
+@{
+    var basePath = Options.Value.DashboardPath.TrimEnd('/');
+    var id = long.Parse(RouteData.Values["id"]?.ToString() ?? "0");
+    var log = await LumaLogService.GetLogAsync(id);
+
+    if (log == null)
+    {
+        ViewData["Title"] = "Log Not Found";
+    }
+    else
+    {
+        ViewData["Title"] = $"Log #{id}";
+    }
+}
+
+@if (log == null)
+{
+    <div class="text-center py-12">
+        <h1 class="text-2xl font-bold text-secondary">Log Not Found</h1>
+        <a href="@basePath/logs" class="mt-4 inline-block text-blue-600 hover:underline">Back to logs</a>
+    </div>
+}
+else
+{
+    <div class="space-y-6">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <a href="@basePath/logs" class="text-secondary hover:text-blue-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                </a>
+                <h1 class="text-2xl font-bold">Log #@id</h1>
+                <span class="level-@log.Level.ToString().ToLower() px-3 py-1 rounded-full text-sm font-medium">
+                    @log.Level
+                </span>
+            </div>
+            <div class="flex items-center space-x-2">
+                @if (!log.IsResolved && log.Level >= LogLevel.Error)
+                {
+                    <form method="post" action="@basePath/api/logs/@id/resolve" class="inline">
+                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                            Mark Resolved
+                        </button>
+                    </form>
+                }
+                <form method="post" action="@basePath/api/logs/@id" class="inline" onsubmit="return confirm('Delete this log?')">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Main Info -->
+        <div class="card rounded-xl border p-6">
+            <h3 class="font-semibold mb-4">Message</h3>
+            <p class="text-lg">@log.Message</p>
+
+            @if (log.IsResolved)
+            {
+                <div class="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p class="text-sm text-green-800">
+                        Resolved by @(log.ResolvedBy ?? "Unknown") on @log.ResolvedAt?.ToString("MMM dd, yyyy HH:mm")
+                    </p>
+                </div>
+            }
+        </div>
+
+        <!-- Metadata -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="card rounded-xl border p-6">
+                <h3 class="font-semibold mb-4">Details</h3>
+                <dl class="space-y-3">
+                    <div class="flex justify-between">
+                        <dt class="text-secondary">Created</dt>
+                        <dd>@log.CreatedAt.ToString("MMM dd, yyyy HH:mm:ss")</dd>
+                    </div>
+                    @if (!string.IsNullOrEmpty(log.Source))
+                    {
+                        <div class="flex justify-between">
+                            <dt class="text-secondary">Source</dt>
+                            <dd class="text-right max-w-xs truncate">@log.Source</dd>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(log.Exception))
+                    {
+                        <div class="flex justify-between">
+                            <dt class="text-secondary">Exception</dt>
+                            <dd class="text-red-600">@log.Exception</dd>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(log.MachineName))
+                    {
+                        <div class="flex justify-between">
+                            <dt class="text-secondary">Machine</dt>
+                            <dd>@log.MachineName</dd>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(log.Environment))
+                    {
+                        <div class="flex justify-between">
+                            <dt class="text-secondary">Environment</dt>
+                            <dd>@log.Environment</dd>
+                        </div>
+                    }
+                </dl>
+            </div>
+
+            <div class="card rounded-xl border p-6">
+                <h3 class="font-semibold mb-4">Request</h3>
+                <dl class="space-y-3">
+                    @if (!string.IsNullOrEmpty(log.RequestPath))
+                    {
+                        <div class="flex justify-between">
+                            <dt class="text-secondary">Path</dt>
+                            <dd class="text-right max-w-xs truncate">@log.RequestMethod @log.RequestPath</dd>
+                        </div>
+                    }
+                    @if (log.StatusCode.HasValue)
+                    {
+                        <div class="flex justify-between">
+                            <dt class="text-secondary">Status Code</dt>
+                            <dd class="@(log.StatusCode >= 400 ? "text-red-600" : "text-green-600")">@log.StatusCode</dd>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(log.IpAddress))
+                    {
+                        <div class="flex justify-between">
+                            <dt class="text-secondary">IP Address</dt>
+                            <dd>@log.IpAddress</dd>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(log.UserId))
+                    {
+                        <div class="flex justify-between">
+                            <dt class="text-secondary">User</dt>
+                            <dd>@(log.UserName ?? log.UserId)</dd>
+                        </div>
+                    }
+                </dl>
+            </div>
+        </div>
+
+        <!-- Trace Context -->
+        @if (!string.IsNullOrEmpty(log.TraceId))
+        {
+            <div class="card rounded-xl border p-6">
+                <h3 class="font-semibold mb-4">Trace Context</h3>
+                <dl class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <dt class="text-secondary">Trace ID</dt>
+                        <dd>
+                            <a href="@basePath/traces/@log.TraceId" class="text-blue-600 hover:underline font-mono text-sm">@log.TraceId</a>
+                        </dd>
+                    </div>
+                    @if (!string.IsNullOrEmpty(log.SpanId))
+                    {
+                        <div class="flex justify-between">
+                            <dt class="text-secondary">Span ID</dt>
+                            <dd class="font-mono text-sm">@log.SpanId</dd>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(log.ParentSpanId))
+                    {
+                        <div class="flex justify-between">
+                            <dt class="text-secondary">Parent Span ID</dt>
+                            <dd class="font-mono text-sm">@log.ParentSpanId</dd>
+                        </div>
+                    }
+                </dl>
+            </div>
+        }
+
+        <!-- Stack Trace -->
+        @if (!string.IsNullOrEmpty(log.StackTrace))
+        {
+            <div class="card rounded-xl border p-6">
+                <h3 class="font-semibold mb-4">Stack Trace</h3>
+                <div class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+                    <pre class="stacktrace">@log.StackTrace</pre>
+                </div>
+            </div>
+        }
+
+        <!-- Custom Data -->
+        @if (log.CustomData != null && log.CustomData.Count > 0)
+        {
+            <div class="card rounded-xl border p-6">
+                <h3 class="font-semibold mb-4">Custom Data</h3>
+                <div class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+                    <pre class="stacktrace">@System.Text.Json.JsonSerializer.Serialize(log.CustomData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })</pre>
+                </div>
+            </div>
+        }
+    </div>
+}
