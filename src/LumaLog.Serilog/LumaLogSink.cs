@@ -39,7 +39,7 @@ public class LumaLogSink : ILogEventSink
         if (logEvent.Exception != null)
         {
             entry.Exception = logEvent.Exception.GetType().FullName;
-            entry.StackTrace = logEvent.Exception.StackTrace;
+            entry.StackTrace = GetFullStackTrace(logEvent.Exception);
             entry.Source = logEvent.Exception.Source;
         }
 
@@ -141,5 +141,34 @@ public class LumaLogSink : ILogEventSink
                 e => GetPropertyValue(e.Value)),
             _ => propertyValue.ToString()
         };
+    }
+
+    private static string GetFullStackTrace(Exception ex)
+    {
+        var sb = new System.Text.StringBuilder();
+
+        var current = ex;
+        var depth = 0;
+
+        while (current != null)
+        {
+            if (depth > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine($"--- Inner Exception {depth} ---");
+            }
+
+            sb.AppendLine($"{current.GetType().FullName}: {current.Message}");
+
+            if (!string.IsNullOrEmpty(current.StackTrace))
+            {
+                sb.AppendLine(current.StackTrace);
+            }
+
+            current = current.InnerException;
+            depth++;
+        }
+
+        return sb.ToString();
     }
 }

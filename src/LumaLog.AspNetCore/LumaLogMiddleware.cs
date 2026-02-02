@@ -141,10 +141,39 @@ public class LumaLogMiddleware
         entry.Level = LogLevel.Error;
         entry.Message = ex.Message;
         entry.Exception = ex.GetType().FullName;
-        entry.StackTrace = ex.StackTrace;
+        entry.StackTrace = GetFullStackTrace(ex);
         entry.Source = ex.Source;
 
         await lumaLogService.LogAsync(entry);
+    }
+
+    private static string GetFullStackTrace(Exception ex)
+    {
+        var sb = new System.Text.StringBuilder();
+
+        var current = ex;
+        var depth = 0;
+
+        while (current != null)
+        {
+            if (depth > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine($"--- Inner Exception {depth} ---");
+            }
+
+            sb.AppendLine($"{current.GetType().FullName}: {current.Message}");
+
+            if (!string.IsNullOrEmpty(current.StackTrace))
+            {
+                sb.AppendLine(current.StackTrace);
+            }
+
+            current = current.InnerException;
+            depth++;
+        }
+
+        return sb.ToString();
     }
 
     private LogEntry CreateLogEntry(HttpContext context, ITraceManager traceManager, long elapsedMs)

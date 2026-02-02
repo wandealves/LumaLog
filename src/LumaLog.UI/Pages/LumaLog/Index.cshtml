@@ -11,36 +11,36 @@
     var traceStats = await LumaLogService.GetTraceStatisticsAsync(DateTimeOffset.UtcNow.AddDays(-7), DateTimeOffset.UtcNow);
 }
 
-<div class="space-y-8">
-    <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold">Dashboard</h1>
-        <div class="text-sm text-secondary">Last 7 days</div>
+<div class="space-y-6 sm:space-y-8">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Dashboard</h1>
+        <div class="text-xs sm:text-sm text-secondary">Last 7 days</div>
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="card rounded-xl p-6 border">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+        <div class="card rounded-xl p-3 sm:p-4 lg:p-5 border">
             <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-secondary">Total Logs</p>
-                    <p class="text-3xl font-bold mt-1">@stats.TotalLogs.ToString("N0")</p>
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs sm:text-sm text-secondary">Total Logs</p>
+                    <p class="text-xl sm:text-2xl lg:text-3xl font-bold mt-1 tabular-nums">@stats.TotalLogs.ToString("N0")</p>
                 </div>
-                <div class="p-3 bg-blue-100 rounded-lg">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="p-2 sm:p-3 bg-blue-100 rounded-lg flex-shrink-0 ml-2">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                 </div>
             </div>
         </div>
 
-        <div class="card rounded-xl p-6 border">
+        <div class="card rounded-xl p-3 sm:p-4 lg:p-5 border">
             <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-secondary">Errors</p>
-                    <p class="text-3xl font-bold mt-1 text-red-600">@stats.TotalErrors.ToString("N0")</p>
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs sm:text-sm text-secondary">Errors</p>
+                    <p class="text-xl sm:text-2xl lg:text-3xl font-bold mt-1 text-red-600 tabular-nums">@stats.TotalErrors.ToString("N0")</p>
                 </div>
-                <div class="p-3 bg-red-100 rounded-lg">
-                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="p-2 sm:p-3 bg-red-100 rounded-lg flex-shrink-0 ml-2">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                 </div>
@@ -48,28 +48,28 @@
             <p class="text-xs text-secondary mt-2">@stats.UnresolvedErrors unresolved</p>
         </div>
 
-        <div class="card rounded-xl p-6 border">
+        <div class="card rounded-xl p-3 sm:p-4 lg:p-5 border">
             <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-secondary">Warnings</p>
-                    <p class="text-3xl font-bold mt-1 text-yellow-600">@stats.TotalWarnings.ToString("N0")</p>
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs sm:text-sm text-secondary">Warnings</p>
+                    <p class="text-xl sm:text-2xl lg:text-3xl font-bold mt-1 text-yellow-600 tabular-nums">@stats.TotalWarnings.ToString("N0")</p>
                 </div>
-                <div class="p-3 bg-yellow-100 rounded-lg">
-                    <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="p-2 sm:p-3 bg-yellow-100 rounded-lg flex-shrink-0 ml-2">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                     </svg>
                 </div>
             </div>
         </div>
 
-        <div class="card rounded-xl p-6 border">
+        <div class="card rounded-xl p-3 sm:p-4 lg:p-5 border">
             <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-secondary">Total Traces</p>
-                    <p class="text-3xl font-bold mt-1 text-purple-600">@traceStats.TotalTraces.ToString("N0")</p>
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs sm:text-sm text-secondary">Total Traces</p>
+                    <p class="text-xl sm:text-2xl lg:text-3xl font-bold mt-1 text-purple-600 tabular-nums">@traceStats.TotalTraces.ToString("N0")</p>
                 </div>
-                <div class="p-3 bg-purple-100 rounded-lg">
-                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="p-2 sm:p-3 bg-purple-100 rounded-lg flex-shrink-0 ml-2">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                     </svg>
                 </div>
@@ -79,57 +79,63 @@
     </div>
 
     <!-- Charts -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="card rounded-xl p-6 border">
-            <h3 class="font-semibold mb-4">Logs by Level</h3>
-            <canvas id="levelChart" height="200"></canvas>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <div class="card rounded-xl p-4 sm:p-6 border">
+            <h3 class="font-semibold text-sm sm:text-base mb-4">Logs by Level</h3>
+            <div class="h-48 sm:h-56 lg:h-64">
+                <canvas id="levelChart"></canvas>
+            </div>
         </div>
-        <div class="card rounded-xl p-6 border">
-            <h3 class="font-semibold mb-4">Error Trend</h3>
-            <canvas id="trendChart" height="200"></canvas>
+        <div class="card rounded-xl p-4 sm:p-6 border">
+            <h3 class="font-semibold text-sm sm:text-base mb-4">Error Trend</h3>
+            <div class="h-48 sm:h-56 lg:h-64">
+                <canvas id="trendChart"></canvas>
+            </div>
         </div>
     </div>
 
     <!-- Recent Errors -->
     <div class="card rounded-xl border">
-        <div class="p-6 border-b flex items-center justify-between">
-            <h3 class="font-semibold">Recent Errors</h3>
-            <a href="@basePath/logs?minLevel=4" class="text-sm text-blue-600 hover:underline">View all</a>
+        <div class="p-4 sm:p-6 border-b flex items-center justify-between">
+            <h3 class="font-semibold text-sm sm:text-base">Recent Errors</h3>
+            <a href="@basePath/logs?minLevel=4" class="text-xs sm:text-sm text-blue-600 hover:underline">View all</a>
         </div>
-        <div class="divide-y">
+        <div class="divide-y divide-slate-100 dark:divide-slate-800">
             @{
                 var recentErrors = await LumaLogService.QueryLogsAsync(new LogFilter { MinLevel = LogLevel.Error, PageSize = 5 });
             }
             @if (recentErrors.Items.Count == 0)
             {
-                <div class="p-8 text-center text-secondary">No errors in the selected period</div>
+                <div class="p-6 sm:p-8 text-center text-secondary text-sm">No errors in the selected period</div>
             }
             else
             {
                 @foreach (var error in recentErrors.Items)
                 {
-                    <a href="@basePath/logs/@error.Id" class="block p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                        <div class="flex items-start justify-between">
+                    <a href="@basePath/logs/@error.Id" class="block p-3 sm:p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                        <div class="flex items-start justify-between gap-3">
                             <div class="flex-1 min-w-0">
-                                <div class="flex items-center space-x-2">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium @(error.Level == LogLevel.Critical ? "bg-red-100 text-red-800" : "bg-red-50 text-red-700")">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="badge @(error.Level == LogLevel.Critical ? "badge-critical" : "badge-error")">
                                         @error.Level
                                     </span>
                                     @if (error.IsResolved)
                                     {
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Resolved</span>
+                                        <span class="badge badge-success">Resolved</span>
                                     }
                                 </div>
-                                <p class="mt-1 text-sm font-medium truncate">@error.Message</p>
-                                <p class="mt-1 text-xs text-secondary">
+                                <p class="mt-1.5 text-sm font-medium truncate">@error.Message</p>
+                                <p class="mt-1 text-xs text-secondary truncate">
                                     @error.Source
-                                    @if (!string.IsNullOrEmpty(error.RequestPath))
-                                    {
-                                        <span>• @error.RequestMethod @error.RequestPath</span>
-                                    }
+                                    <span class="hidden sm:inline">
+                                        @if (!string.IsNullOrEmpty(error.RequestPath))
+                                        {
+                                            <span>• @error.RequestMethod @error.RequestPath</span>
+                                        }
+                                    </span>
                                 </p>
                             </div>
-                            <div class="text-xs text-secondary ml-4">
+                            <div class="text-xs text-secondary whitespace-nowrap flex-shrink-0">
                                 @error.CreatedAt.ToString("MMM dd HH:mm")
                             </div>
                         </div>
@@ -144,18 +150,33 @@
 <script>
     const levelData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(stats.CountByLevel.ToDictionary(x => x.Key.ToString(), x => x.Value)));
 
+    // Responsive legend position
+    const isMobile = window.innerWidth < 640;
+
     new Chart(document.getElementById('levelChart'), {
         type: 'doughnut',
         data: {
             labels: Object.keys(levelData),
             datasets: [{
                 data: Object.values(levelData),
-                backgroundColor: ['#94a3b8', '#60a5fa', '#22c55e', '#eab308', '#ef4444', '#dc2626']
+                backgroundColor: ['#8b949e', '#58a6ff', '#3fb950', '#d29922', '#f85149', '#da3633'],
+                borderWidth: 0
             }]
         },
         options: {
             responsive: true,
-            plugins: { legend: { position: 'right' } }
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    position: isMobile ? 'bottom' : 'right',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 12,
+                        font: { size: 12 }
+                    }
+                }
+            }
         }
     });
 
@@ -167,15 +188,38 @@
             datasets: [{
                 label: 'Errors',
                 data: [0, 0, 0, 0, 0, 0, @stats.TotalErrors],
-                borderColor: '#ef4444',
+                borderColor: '#f85149',
+                backgroundColor: 'rgba(248, 81, 73, 0.1)',
                 tension: 0.3,
-                fill: false
+                fill: true,
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: '#f85149'
             }]
         },
         options: {
             responsive: true,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true } }
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(128, 128, 128, 0.1)'
+                    },
+                    ticks: {
+                        font: { size: 11 }
+                    }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: {
+                        font: { size: 11 }
+                    }
+                }
+            }
         }
     });
 </script>

@@ -22,37 +22,38 @@
 @if (log == null)
 {
     <div class="text-center py-12">
-        <h1 class="text-2xl font-bold text-secondary">Log Not Found</h1>
-        <a href="@basePath/logs" class="mt-4 inline-block text-blue-600 hover:underline">Back to logs</a>
+        <h1 class="text-xl sm:text-2xl font-bold text-secondary">Log Not Found</h1>
+        <a href="@basePath/logs" class="mt-4 inline-block text-blue-600 hover:underline text-sm">Back to logs</a>
     </div>
 }
 else
 {
-    <div class="space-y-6">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <a href="@basePath/logs" class="text-secondary hover:text-blue-600">
+    <div class="space-y-4 sm:space-y-6">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3 sm:gap-4">
+                <a href="@basePath/logs" class="text-secondary hover:text-blue-600 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>
                 </a>
-                <h1 class="text-2xl font-bold">Log #@id</h1>
-                <span class="level-@log.Level.ToString().ToLower() px-3 py-1 rounded-full text-sm font-medium">
+                <h1 class="text-lg sm:text-xl lg:text-2xl font-bold">Log #@id</h1>
+                <span class="badge @GetLevelBadgeClass(log.Level)">
                     @log.Level
                 </span>
             </div>
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center gap-2 sm:gap-3">
                 @if (!log.IsResolved && log.Level >= LogLevel.Error)
                 {
                     <form method="post" action="@basePath/api/logs/@id/resolve" class="inline">
-                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                        <button type="submit" class="btn btn-success btn-sm">
                             Mark Resolved
                         </button>
                     </form>
                 }
                 <form method="post" action="@basePath/api/logs/@id" class="inline" onsubmit="return confirm('Delete this log?')">
                     <input type="hidden" name="_method" value="DELETE">
-                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                    <button type="submit" class="btn btn-danger btn-sm">
                         Delete
                     </button>
                 </form>
@@ -60,14 +61,14 @@ else
         </div>
 
         <!-- Main Info -->
-        <div class="card rounded-xl border p-6">
-            <h3 class="font-semibold mb-4">Message</h3>
-            <p class="text-lg">@log.Message</p>
+        <div class="card rounded-xl border p-4 sm:p-6">
+            <h3 class="font-semibold text-sm sm:text-base mb-3">Message</h3>
+            <p class="text-sm sm:text-base lg:text-lg leading-relaxed">@log.Message</p>
 
             @if (log.IsResolved)
             {
-                <div class="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <p class="text-sm text-green-800">
+                <div class="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                    <p class="text-xs sm:text-sm text-green-800 dark:text-green-300">
                         Resolved by @(log.ResolvedBy ?? "Unknown") on @log.ResolvedAt?.ToString("MMM dd, yyyy HH:mm")
                     </p>
                 </div>
@@ -75,75 +76,86 @@ else
         </div>
 
         <!-- Metadata -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="card rounded-xl border p-6">
-                <h3 class="font-semibold mb-4">Details</h3>
-                <dl class="space-y-3">
-                    <div class="flex justify-between">
-                        <dt class="text-secondary">Created</dt>
-                        <dd>@log.CreatedAt.ToString("MMM dd, yyyy HH:mm:ss")</dd>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            <div class="card rounded-xl border p-4 sm:p-6">
+                <h3 class="font-semibold text-sm sm:text-base mb-4">Details</h3>
+                <dl class="space-y-0 divide-y divide-slate-100 dark:divide-slate-800">
+                    <div class="flex justify-between py-2.5 first:pt-0">
+                        <dt class="text-secondary text-sm">Created</dt>
+                        <dd class="text-sm font-medium">@log.CreatedAt.ToString("MMM dd, yyyy HH:mm:ss")</dd>
                     </div>
                     @if (!string.IsNullOrEmpty(log.Source))
                     {
-                        <div class="flex justify-between">
-                            <dt class="text-secondary">Source</dt>
-                            <dd class="text-right max-w-xs truncate">@log.Source</dd>
+                        <div class="flex justify-between py-2.5">
+                            <dt class="text-secondary text-sm">Source</dt>
+                            <dd class="text-sm text-right max-w-[200px] sm:max-w-xs truncate font-mono text-xs">@log.Source</dd>
                         </div>
                     }
                     @if (!string.IsNullOrEmpty(log.Exception))
                     {
-                        <div class="flex justify-between">
-                            <dt class="text-secondary">Exception</dt>
-                            <dd class="text-red-600">@log.Exception</dd>
+                        <div class="flex justify-between py-2.5">
+                            <dt class="text-secondary text-sm">Exception</dt>
+                            <dd class="text-sm text-red-600 dark:text-red-400 font-medium">@log.Exception</dd>
                         </div>
                     }
                     @if (!string.IsNullOrEmpty(log.MachineName))
                     {
-                        <div class="flex justify-between">
-                            <dt class="text-secondary">Machine</dt>
-                            <dd>@log.MachineName</dd>
+                        <div class="flex justify-between py-2.5">
+                            <dt class="text-secondary text-sm">Machine</dt>
+                            <dd class="text-sm font-medium">@log.MachineName</dd>
                         </div>
                     }
                     @if (!string.IsNullOrEmpty(log.Environment))
                     {
-                        <div class="flex justify-between">
-                            <dt class="text-secondary">Environment</dt>
-                            <dd>@log.Environment</dd>
+                        <div class="flex justify-between py-2.5 last:pb-0">
+                            <dt class="text-secondary text-sm">Environment</dt>
+                            <dd class="text-sm">
+                                <span class="badge badge-neutral">@log.Environment</span>
+                            </dd>
                         </div>
                     }
                 </dl>
             </div>
 
-            <div class="card rounded-xl border p-6">
-                <h3 class="font-semibold mb-4">Request</h3>
-                <dl class="space-y-3">
+            <div class="card rounded-xl border p-4 sm:p-6">
+                <h3 class="font-semibold text-sm sm:text-base mb-4">Request</h3>
+                <dl class="space-y-0 divide-y divide-slate-100 dark:divide-slate-800">
                     @if (!string.IsNullOrEmpty(log.RequestPath))
                     {
-                        <div class="flex justify-between">
-                            <dt class="text-secondary">Path</dt>
-                            <dd class="text-right max-w-xs truncate">@log.RequestMethod @log.RequestPath</dd>
+                        <div class="flex justify-between py-2.5 first:pt-0">
+                            <dt class="text-secondary text-sm">Path</dt>
+                            <dd class="text-sm text-right max-w-[180px] sm:max-w-xs truncate">
+                                <span class="badge badge-info mr-1">@log.RequestMethod</span>
+                                <span class="font-mono text-xs">@log.RequestPath</span>
+                            </dd>
                         </div>
                     }
                     @if (log.StatusCode.HasValue)
                     {
-                        <div class="flex justify-between">
-                            <dt class="text-secondary">Status Code</dt>
-                            <dd class="@(log.StatusCode >= 400 ? "text-red-600" : "text-green-600")">@log.StatusCode</dd>
+                        <div class="flex justify-between py-2.5">
+                            <dt class="text-secondary text-sm">Status Code</dt>
+                            <dd class="text-sm">
+                                <span class="badge @(log.StatusCode >= 400 ? "badge-error" : "badge-success") tabular-nums">@log.StatusCode</span>
+                            </dd>
                         </div>
                     }
                     @if (!string.IsNullOrEmpty(log.IpAddress))
                     {
-                        <div class="flex justify-between">
-                            <dt class="text-secondary">IP Address</dt>
-                            <dd>@log.IpAddress</dd>
+                        <div class="flex justify-between py-2.5">
+                            <dt class="text-secondary text-sm">IP Address</dt>
+                            <dd class="text-sm font-mono text-xs">@log.IpAddress</dd>
                         </div>
                     }
                     @if (!string.IsNullOrEmpty(log.UserId))
                     {
-                        <div class="flex justify-between">
-                            <dt class="text-secondary">User</dt>
-                            <dd>@(log.UserName ?? log.UserId)</dd>
+                        <div class="flex justify-between py-2.5 last:pb-0">
+                            <dt class="text-secondary text-sm">User</dt>
+                            <dd class="text-sm font-medium">@(log.UserName ?? log.UserId)</dd>
                         </div>
+                    }
+                    @if (string.IsNullOrEmpty(log.RequestPath) && !log.StatusCode.HasValue && string.IsNullOrEmpty(log.IpAddress) && string.IsNullOrEmpty(log.UserId))
+                    {
+                        <div class="py-4 text-center text-secondary text-sm">No request information</div>
                     }
                 </dl>
             </div>
@@ -152,27 +164,27 @@ else
         <!-- Trace Context -->
         @if (!string.IsNullOrEmpty(log.TraceId))
         {
-            <div class="card rounded-xl border p-6">
-                <h3 class="font-semibold mb-4">Trace Context</h3>
-                <dl class="space-y-3">
-                    <div class="flex justify-between items-center">
-                        <dt class="text-secondary">Trace ID</dt>
+            <div class="card rounded-xl border p-4 sm:p-6">
+                <h3 class="font-semibold text-sm sm:text-base mb-4">Trace Context</h3>
+                <dl class="space-y-0 divide-y divide-slate-100 dark:divide-slate-800">
+                    <div class="flex flex-col sm:flex-row sm:justify-between py-2.5 first:pt-0 gap-1">
+                        <dt class="text-secondary text-sm">Trace ID</dt>
                         <dd>
-                            <a href="@basePath/traces/@log.TraceId" class="text-blue-600 hover:underline font-mono text-sm">@log.TraceId</a>
+                            <a href="@basePath/traces/@log.TraceId" class="text-blue-600 hover:underline font-mono text-xs break-all">@log.TraceId</a>
                         </dd>
                     </div>
                     @if (!string.IsNullOrEmpty(log.SpanId))
                     {
-                        <div class="flex justify-between">
-                            <dt class="text-secondary">Span ID</dt>
-                            <dd class="font-mono text-sm">@log.SpanId</dd>
+                        <div class="flex flex-col sm:flex-row sm:justify-between py-2.5 gap-1">
+                            <dt class="text-secondary text-sm">Span ID</dt>
+                            <dd class="font-mono text-xs">@log.SpanId</dd>
                         </div>
                     }
                     @if (!string.IsNullOrEmpty(log.ParentSpanId))
                     {
-                        <div class="flex justify-between">
-                            <dt class="text-secondary">Parent Span ID</dt>
-                            <dd class="font-mono text-sm">@log.ParentSpanId</dd>
+                        <div class="flex flex-col sm:flex-row sm:justify-between py-2.5 last:pb-0 gap-1">
+                            <dt class="text-secondary text-sm">Parent Span ID</dt>
+                            <dd class="font-mono text-xs">@log.ParentSpanId</dd>
                         </div>
                     }
                 </dl>
@@ -182,9 +194,9 @@ else
         <!-- Stack Trace -->
         @if (!string.IsNullOrEmpty(log.StackTrace))
         {
-            <div class="card rounded-xl border p-6">
-                <h3 class="font-semibold mb-4">Stack Trace</h3>
-                <div class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+            <div class="card rounded-xl border p-4 sm:p-6">
+                <h3 class="font-semibold text-sm sm:text-base mb-4">Stack Trace</h3>
+                <div class="bg-slate-900 text-slate-100 p-3 sm:p-4 rounded-lg overflow-x-auto">
                     <pre class="stacktrace">@log.StackTrace</pre>
                 </div>
             </div>
@@ -193,12 +205,28 @@ else
         <!-- Custom Data -->
         @if (log.CustomData != null && log.CustomData.Count > 0)
         {
-            <div class="card rounded-xl border p-6">
-                <h3 class="font-semibold mb-4">Custom Data</h3>
-                <div class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+            <div class="card rounded-xl border p-4 sm:p-6">
+                <h3 class="font-semibold text-sm sm:text-base mb-4">Custom Data</h3>
+                <div class="bg-slate-900 text-slate-100 p-3 sm:p-4 rounded-lg overflow-x-auto">
                     <pre class="stacktrace">@System.Text.Json.JsonSerializer.Serialize(log.CustomData, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })</pre>
                 </div>
             </div>
         }
     </div>
+}
+
+@functions {
+    string GetLevelBadgeClass(LogLevel level)
+    {
+        return level switch
+        {
+            LogLevel.Trace => "badge-neutral",
+            LogLevel.Debug => "badge-info",
+            LogLevel.Information => "badge-success",
+            LogLevel.Warning => "badge-warning",
+            LogLevel.Error => "badge-error",
+            LogLevel.Critical => "badge-critical",
+            _ => "badge-neutral"
+        };
+    }
 }

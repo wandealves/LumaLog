@@ -23,42 +23,46 @@
     var logs = await LumaLogService.QueryLogsAsync(filter);
 }
 
-<div class="space-y-6">
-    <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold">Logs</h1>
-        <div class="flex items-center space-x-4">
-            <a href="@basePath/api/export/logs?format=csv" class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50 transition-colors">Export CSV</a>
-            <a href="@basePath/api/export/logs?format=json" class="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50 transition-colors">Export JSON</a>
+<div class="space-y-4 sm:space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Logs</h1>
+        <div class="flex items-center gap-2 sm:gap-3">
+            <a href="@basePath/api/export/logs?format=csv" class="btn btn-secondary btn-sm">Export CSV</a>
+            <a href="@basePath/api/export/logs?format=json" class="btn btn-secondary btn-sm">Export JSON</a>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="card rounded-xl p-4 border">
-        <form method="get" class="flex flex-wrap gap-4 items-end">
-            <div class="flex-1 min-w-[200px]">
-                <label class="block text-sm text-secondary mb-1">Search</label>
+    <div class="card rounded-xl p-3 sm:p-4 border">
+        <form method="get" class="space-y-3 sm:space-y-0 sm:flex sm:flex-wrap sm:gap-3 sm:items-end">
+            <div class="flex-1 min-w-0 sm:min-w-[200px]">
+                <label class="block text-xs sm:text-sm text-secondary mb-1">Search</label>
                 <input type="text" name="search" value="@filter.SearchTerm" placeholder="Search messages..."
-                       class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                       class="w-full px-3 py-2 text-sm border rounded-lg">
             </div>
-            <div class="w-40">
-                <label class="block text-sm text-secondary mb-1">Min Level</label>
-                <select name="minLevel" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                    <option value="">All</option>
-                    @foreach (LogLevel level in Enum.GetValues<LogLevel>())
-                    {
-                        <option value="@level" selected="@(filter.MinLevel == level)">@level</option>
-                    }
-                </select>
+            <div class="flex gap-2 sm:gap-3">
+                <div class="w-1/2 sm:w-32">
+                    <label class="block text-xs sm:text-sm text-secondary mb-1">Min Level</label>
+                    <select name="minLevel" class="w-full px-3 py-2 text-sm border rounded-lg">
+                        <option value="">All</option>
+                        @foreach (LogLevel level in Enum.GetValues<LogLevel>())
+                        {
+                            <option value="@level" selected="@(filter.MinLevel == level)">@level</option>
+                        }
+                    </select>
+                </div>
+                <div class="w-1/2 sm:w-40 sm:flex-1 sm:min-w-[150px]">
+                    <label class="block text-xs sm:text-sm text-secondary mb-1">Trace ID</label>
+                    <input type="text" name="traceId" value="@filter.TraceId" placeholder="Filter by trace..."
+                           class="w-full px-3 py-2 text-sm border rounded-lg">
+                </div>
             </div>
-            <div class="flex-1 min-w-[200px]">
-                <label class="block text-sm text-secondary mb-1">Trace ID</label>
-                <input type="text" name="traceId" value="@filter.TraceId" placeholder="Filter by trace..."
-                       class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <div class="flex gap-2 pt-1 sm:pt-0">
+                <button type="submit" class="btn btn-primary btn-sm flex-1 sm:flex-none">
+                    Filter
+                </button>
+                <a href="@basePath/logs" class="btn btn-secondary btn-sm flex-1 sm:flex-none">Clear</a>
             </div>
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                Filter
-            </button>
-            <a href="@basePath/logs" class="px-4 py-2 border rounded-lg hover:bg-gray-50 transition-colors">Clear</a>
         </form>
     </div>
 
@@ -66,16 +70,16 @@
     <div class="card rounded-xl border overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
-                <thead class="bg-gray-50 dark:bg-gray-800">
+                <thead class="table-header">
                     <tr>
-                        <th class="px-4 py-3 text-left font-medium text-secondary">Level</th>
-                        <th class="px-4 py-3 text-left font-medium text-secondary">Message</th>
-                        <th class="px-4 py-3 text-left font-medium text-secondary">Source</th>
-                        <th class="px-4 py-3 text-left font-medium text-secondary">Time</th>
-                        <th class="px-4 py-3 text-left font-medium text-secondary">Status</th>
+                        <th class="px-3 sm:px-4 py-2 sm:py-3 text-left">Level</th>
+                        <th class="px-3 sm:px-4 py-2 sm:py-3 text-left">Message</th>
+                        <th class="px-3 sm:px-4 py-2 sm:py-3 text-left hidden md:table-cell">Source</th>
+                        <th class="px-3 sm:px-4 py-2 sm:py-3 text-left">Time</th>
+                        <th class="px-3 sm:px-4 py-2 sm:py-3 text-left hidden sm:table-cell">Status</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y">
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                     @if (logs.Items.Count == 0)
                     {
                         <tr>
@@ -86,21 +90,21 @@
                     {
                         @foreach (var log in logs.Items)
                         {
-                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer" onclick="window.location='@basePath/logs/@log.Id'">
-                                <td class="px-4 py-3">
-                                    <span class="level-@log.Level.ToString().ToLower() font-medium">@log.Level</span>
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors" onclick="window.location='@basePath/logs/@log.Id'">
+                                <td class="px-3 sm:px-4 py-2 sm:py-3">
+                                    <span class="badge @GetLevelBadgeClass(log.Level)">@log.Level</span>
                                 </td>
-                                <td class="px-4 py-3 max-w-md truncate">@log.Message</td>
-                                <td class="px-4 py-3 text-secondary max-w-xs truncate">@log.Source</td>
-                                <td class="px-4 py-3 text-secondary whitespace-nowrap">@log.CreatedAt.ToString("MMM dd HH:mm:ss")</td>
-                                <td class="px-4 py-3">
+                                <td class="px-3 sm:px-4 py-2 sm:py-3 max-w-[200px] sm:max-w-md truncate">@log.Message</td>
+                                <td class="px-3 sm:px-4 py-2 sm:py-3 text-secondary max-w-xs truncate hidden md:table-cell">@log.Source</td>
+                                <td class="px-3 sm:px-4 py-2 sm:py-3 text-secondary whitespace-nowrap text-xs sm:text-sm">@log.CreatedAt.ToString("MMM dd HH:mm")</td>
+                                <td class="px-3 sm:px-4 py-2 sm:py-3 hidden sm:table-cell">
                                     @if (log.IsResolved)
                                     {
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Resolved</span>
+                                        <span class="badge badge-success">Resolved</span>
                                     }
                                     else if (log.Level >= LogLevel.Error)
                                     {
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Open</span>
+                                        <span class="badge badge-error">Open</span>
                                     }
                                 </td>
                             </tr>
@@ -113,21 +117,37 @@
         <!-- Pagination -->
         @if (logs.TotalPages > 1)
         {
-            <div class="px-4 py-3 border-t flex items-center justify-between">
-                <div class="text-sm text-secondary">
+            <div class="px-3 sm:px-4 py-3 border-t flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div class="text-xs sm:text-sm text-secondary">
                     Showing @((logs.Page - 1) * logs.PageSize + 1) to @Math.Min(logs.Page * logs.PageSize, logs.TotalItems) of @logs.TotalItems
                 </div>
-                <div class="flex space-x-2">
+                <div class="flex gap-2">
                     @if (logs.HasPreviousPage)
                     {
-                        <a href="?page=@(logs.Page - 1)&search=@filter.SearchTerm&minLevel=@filter.MinLevel" class="px-3 py-1 border rounded hover:bg-gray-50">Previous</a>
+                        <a href="?page=@(logs.Page - 1)&search=@filter.SearchTerm&minLevel=@filter.MinLevel&traceId=@filter.TraceId" class="btn btn-secondary btn-sm">Previous</a>
                     }
                     @if (logs.HasNextPage)
                     {
-                        <a href="?page=@(logs.Page + 1)&search=@filter.SearchTerm&minLevel=@filter.MinLevel" class="px-3 py-1 border rounded hover:bg-gray-50">Next</a>
+                        <a href="?page=@(logs.Page + 1)&search=@filter.SearchTerm&minLevel=@filter.MinLevel&traceId=@filter.TraceId" class="btn btn-secondary btn-sm">Next</a>
                     }
                 </div>
             </div>
         }
     </div>
 </div>
+
+@functions {
+    string GetLevelBadgeClass(LogLevel level)
+    {
+        return level switch
+        {
+            LogLevel.Trace => "badge-neutral",
+            LogLevel.Debug => "badge-info",
+            LogLevel.Information => "badge-success",
+            LogLevel.Warning => "badge-warning",
+            LogLevel.Error => "badge-error",
+            LogLevel.Critical => "badge-critical",
+            _ => "badge-neutral"
+        };
+    }
+}

@@ -12,54 +12,202 @@
     <title>@ViewData["Title"] - LumaLog</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    maxWidth: {
+                        '8xl': '1600px'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         * { font-family: 'Inter', sans-serif; }
+        code, pre, .font-mono { font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace; }
+
         [data-theme="dark"] {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --bg-tertiary: #334155;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --border-color: #334155;
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --border-color: #30363d;
         }
         [data-theme="light"] {
-            --bg-primary: #f8fafc;
+            --bg-primary: #fafbfc;
             --bg-secondary: #ffffff;
-            --bg-tertiary: #f1f5f9;
-            --text-primary: #0f172a;
-            --text-secondary: #64748b;
-            --border-color: #e2e8f0;
+            --bg-tertiary: #f4f6f8;
+            --text-primary: #1a2332;
+            --text-secondary: #5c6b7a;
+            --border-color: #d0d7de;
         }
-        body { background-color: var(--bg-primary); color: var(--text-primary); }
-        .card { background-color: var(--bg-secondary); border-color: var(--border-color); }
+
+        html {
+            font-size: 14px;
+        }
+        @@media (min-width: 640px) {
+            html {
+                font-size: 15px;
+            }
+        }
+        @@media (min-width: 1024px) {
+            html {
+                font-size: 16px;
+            }
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        .card {
+            background-color: var(--bg-secondary);
+            border-color: var(--border-color);
+        }
         .text-secondary { color: var(--text-secondary); }
-        .level-trace { color: #94a3b8; }
-        .level-debug { color: #60a5fa; }
-        .level-info { color: #22c55e; }
-        .level-warning { color: #eab308; }
-        .level-error { color: #ef4444; }
-        .level-critical { color: #dc2626; background-color: #fef2f2; }
-        .status-ok { color: #22c55e; }
-        .status-error { color: #ef4444; }
-        .stacktrace { font-family: 'Consolas', 'Monaco', monospace; font-size: 0.75rem; white-space: pre-wrap; word-break: break-all; }
+
+        /* Log level colors */
+        .level-trace { color: #8b949e; }
+        .level-debug { color: #58a6ff; }
+        .level-info { color: #3fb950; }
+        .level-warning { color: #d29922; }
+        .level-error { color: #f85149; }
+        .level-critical { color: #da3633; background-color: rgba(248, 81, 73, 0.1); padding: 0.125rem 0.5rem; border-radius: 9999px; }
+
+        /* Status colors */
+        .status-ok { color: #3fb950; }
+        .status-error { color: #f85149; }
+
+        /* Stack trace styling */
+        .stacktrace {
+            font-family: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+            font-size: 0.8125rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.7;
+        }
+
+        /* Timeline */
         .timeline-line { border-left: 2px solid #3b82f6; }
         .span-bar { height: 24px; border-radius: 4px; min-width: 4px; }
+
+        /* Badge styles */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            line-height: 1.25rem;
+        }
+        .badge-error { background-color: rgba(248, 81, 73, 0.15); color: #f85149; }
+        .badge-critical { background-color: rgba(218, 54, 51, 0.2); color: #da3633; }
+        .badge-warning { background-color: rgba(210, 153, 34, 0.15); color: #d29922; }
+        .badge-success { background-color: rgba(63, 185, 80, 0.15); color: #3fb950; }
+        .badge-info { background-color: rgba(88, 166, 255, 0.15); color: #58a6ff; }
+        .badge-neutral { background-color: var(--bg-tertiary); color: var(--text-secondary); }
+
+        /* Button styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 0.5rem;
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8125rem;
+        }
+        .btn-primary {
+            background-color: #2563eb;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        .btn-secondary:hover {
+            background-color: var(--bg-tertiary);
+        }
+        .btn-danger {
+            background-color: #dc2626;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+        .btn-success {
+            background-color: #16a34a;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #15803d;
+        }
+
+        /* Input styles */
+        input, select {
+            background-color: var(--bg-secondary);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Table header styling */
+        .table-header {
+            background-color: var(--bg-tertiary);
+            text-transform: uppercase;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        /* Tabular numbers for stats */
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Mobile menu */
+        .mobile-menu {
+            display: none;
+        }
+        .mobile-menu.open {
+            display: block;
+        }
     </style>
 </head>
 <body class="min-h-screen">
-    <nav class="card border-b px-6 py-4">
-        <div class="flex items-center justify-between max-w-7xl mx-auto">
-            <div class="flex items-center space-x-8">
-                <a href="@basePath" class="text-xl font-bold text-blue-600">LumaLog</a>
-                <div class="flex space-x-6">
-                    <a href="@basePath" class="hover:text-blue-600 transition-colors">Dashboard</a>
-                    <a href="@basePath/logs" class="hover:text-blue-600 transition-colors">Logs</a>
-                    <a href="@basePath/traces" class="hover:text-blue-600 transition-colors">Traces</a>
+    <nav class="card border-b sticky top-0 z-50 backdrop-blur-sm bg-opacity-95">
+        <div class="flex items-center justify-between max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+            <div class="flex items-center space-x-4 sm:space-x-8">
+                <a href="@basePath" class="text-lg sm:text-xl font-bold text-blue-600">LumaLog</a>
+                <!-- Desktop navigation -->
+                <div class="hidden sm:flex space-x-4 lg:space-x-6">
+                    <a href="@basePath" class="text-sm hover:text-blue-600 transition-colors">Dashboard</a>
+                    <a href="@basePath/logs" class="text-sm hover:text-blue-600 transition-colors">Logs</a>
+                    <a href="@basePath/traces" class="text-sm hover:text-blue-600 transition-colors">Traces</a>
                 </div>
             </div>
-            <div class="flex items-center space-x-4">
-                <button id="themeToggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <button id="themeToggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                     <svg id="sunIcon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
                     </svg>
@@ -67,15 +215,28 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
                     </svg>
                 </button>
+                <!-- Mobile menu button -->
+                <button id="mobileMenuBtn" class="sm:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
             </div>
+        </div>
+        <!-- Mobile navigation menu -->
+        <div id="mobileMenu" class="mobile-menu sm:hidden border-t px-4 py-3 space-y-2">
+            <a href="@basePath" class="block py-2 text-sm hover:text-blue-600 transition-colors">Dashboard</a>
+            <a href="@basePath/logs" class="block py-2 text-sm hover:text-blue-600 transition-colors">Logs</a>
+            <a href="@basePath/traces" class="block py-2 text-sm hover:text-blue-600 transition-colors">Traces</a>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-6 py-8">
+    <main class="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         @RenderBody()
     </main>
 
     <script>
+        // Theme toggle
         const themeToggle = document.getElementById('themeToggle');
         const sunIcon = document.getElementById('sunIcon');
         const moonIcon = document.getElementById('moonIcon');
@@ -99,6 +260,14 @@
         themeToggle.addEventListener('click', () => {
             const currentTheme = html.getAttribute('data-theme');
             setTheme(currentTheme === 'light' ? 'dark' : 'light');
+        });
+
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('open');
         });
     </script>
 

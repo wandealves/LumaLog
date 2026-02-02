@@ -15,47 +15,48 @@
 @if (trace == null)
 {
     <div class="text-center py-12">
-        <h1 class="text-2xl font-bold text-secondary">Trace Not Found</h1>
-        <a href="@basePath/traces" class="mt-4 inline-block text-blue-600 hover:underline">Back to traces</a>
+        <h1 class="text-xl sm:text-2xl font-bold text-secondary">Trace Not Found</h1>
+        <a href="@basePath/traces" class="mt-4 inline-block text-blue-600 hover:underline text-sm">Back to traces</a>
     </div>
 }
 else
 {
-    <div class="space-y-6">
-        <div class="flex items-center space-x-4">
-            <a href="@basePath/traces" class="text-secondary hover:text-blue-600">
+    <div class="space-y-4 sm:space-y-6">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <a href="@basePath/traces" class="text-secondary hover:text-blue-600 transition-colors self-start">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
             </a>
-            <h1 class="text-2xl font-bold">Trace Details</h1>
+            <h1 class="text-lg sm:text-xl lg:text-2xl font-bold">Trace Details</h1>
             @if (trace.ErrorCount > 0)
             {
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-                    @trace.ErrorCount error(s)
+                <span class="badge badge-error">
+                    @trace.ErrorCount error@(trace.ErrorCount > 1 ? "s" : "")
                 </span>
             }
             else
             {
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                <span class="badge badge-success">
                     OK
                 </span>
             }
         </div>
 
         <!-- Summary -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
-            <div class="card rounded-xl border p-4">
-                <p class="text-sm text-secondary">Trace ID</p>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div class="card rounded-xl border p-3 sm:p-4">
+                <p class="text-xs sm:text-sm text-secondary">Trace ID</p>
                 <p class="font-mono text-xs mt-1 truncate" title="@trace.TraceId">@trace.TraceId</p>
             </div>
-            <div class="card rounded-xl border p-4">
-                <p class="text-sm text-secondary">Service</p>
-                <p class="font-medium mt-1">@(trace.ServiceName ?? "-")</p>
+            <div class="card rounded-xl border p-3 sm:p-4">
+                <p class="text-xs sm:text-sm text-secondary">Service</p>
+                <p class="font-medium text-sm sm:text-base mt-1 truncate">@(trace.ServiceName ?? "-")</p>
             </div>
-            <div class="card rounded-xl border p-4">
-                <p class="text-sm text-secondary">Duration</p>
-                <p class="font-medium mt-1">
+            <div class="card rounded-xl border p-3 sm:p-4">
+                <p class="text-xs sm:text-sm text-secondary">Duration</p>
+                <p class="font-medium text-sm sm:text-base mt-1 tabular-nums">
                     @if (trace.TotalDurationMs.HasValue)
                     {
                         @(trace.TotalDurationMs >= 1000 ? $"{trace.TotalDurationMs / 1000.0:F2}s" : $"{trace.TotalDurationMs}ms")
@@ -66,16 +67,16 @@ else
                     }
                 </p>
             </div>
-            <div class="card rounded-xl border p-4">
-                <p class="text-sm text-secondary">Spans</p>
-                <p class="font-medium mt-1">@trace.SpanCount</p>
+            <div class="card rounded-xl border p-3 sm:p-4">
+                <p class="text-xs sm:text-sm text-secondary">Spans</p>
+                <p class="font-medium text-sm sm:text-base mt-1 tabular-nums">@trace.SpanCount</p>
             </div>
         </div>
 
         <!-- Timeline -->
-        <div class="card rounded-xl border p-6">
-            <h3 class="font-semibold mb-4">Span Timeline</h3>
-            <div class="space-y-2">
+        <div class="card rounded-xl border p-4 sm:p-6">
+            <h3 class="font-semibold text-sm sm:text-base mb-4">Span Timeline</h3>
+            <div class="space-y-1 sm:space-y-2">
                 @{
                     var totalDuration = trace.TotalDurationMs ?? 1;
                     var startTime = trace.StartTime;
@@ -90,14 +91,18 @@ else
                         var leftPercent = Math.Max(0, Math.Min(100, (offsetMs / totalDuration) * 100));
                         var widthPercent = Math.Max(1, Math.Min(100 - leftPercent, (durationMs / totalDuration) * 100));
 
-                        <div class="flex items-center py-1" style="padding-left: @(depth * 20)px">
-                            <div class="w-48 flex-shrink-0 pr-4">
-                                <p class="text-sm truncate" title="@span.Name">@span.Name</p>
-                                <p class="text-xs text-secondary">@(span.DurationMs.HasValue ? $"{span.DurationMs}ms" : "running...")</p>
+                        // Smaller indentation on mobile (12px) vs desktop (20px)
+                        var mobileIndent = depth * 12;
+                        var desktopIndent = depth * 20;
+
+                        <div class="flex items-center py-1 group" style="padding-left: @(mobileIndent)px">
+                            <div class="w-24 sm:w-32 lg:w-48 flex-shrink-0 pr-2 sm:pr-4">
+                                <p class="text-xs sm:text-sm truncate" title="@span.Name">@span.Name</p>
+                                <p class="text-xs text-secondary tabular-nums">@(span.DurationMs.HasValue ? $"{span.DurationMs}ms" : "running...")</p>
                             </div>
-                            <div class="flex-1 h-8 bg-gray-100 dark:bg-gray-800 rounded relative">
+                            <div class="flex-1 h-6 sm:h-8 bg-slate-100 dark:bg-slate-800 rounded relative">
                                 <div class="span-bar absolute top-1 @(span.Status == SpanStatus.Error ? "bg-red-500" : "bg-blue-500")"
-                                     style="left: @leftPercent%; width: @widthPercent%;"
+                                     style="left: @leftPercent.ToString(System.Globalization.CultureInfo.InvariantCulture)%; width: @widthPercent.ToString(System.Globalization.CultureInfo.InvariantCulture)%;"
                                      title="@span.Name: @(span.DurationMs ?? 0)ms">
                                 </div>
                             </div>
@@ -120,42 +125,42 @@ else
 
         <!-- Spans Table -->
         <div class="card rounded-xl border">
-            <div class="p-4 border-b">
-                <h3 class="font-semibold">All Spans</h3>
+            <div class="p-3 sm:p-4 border-b">
+                <h3 class="font-semibold text-sm sm:text-base">All Spans</h3>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
-                    <thead class="bg-gray-50 dark:bg-gray-800">
+                    <thead class="table-header">
                         <tr>
-                            <th class="px-4 py-3 text-left font-medium text-secondary">Name</th>
-                            <th class="px-4 py-3 text-left font-medium text-secondary">Span ID</th>
-                            <th class="px-4 py-3 text-left font-medium text-secondary">Duration</th>
-                            <th class="px-4 py-3 text-left font-medium text-secondary">Status</th>
-                            <th class="px-4 py-3 text-left font-medium text-secondary">Start Time</th>
+                            <th class="px-3 sm:px-4 py-2 sm:py-3 text-left">Name</th>
+                            <th class="px-3 sm:px-4 py-2 sm:py-3 text-left hidden md:table-cell">Span ID</th>
+                            <th class="px-3 sm:px-4 py-2 sm:py-3 text-left">Duration</th>
+                            <th class="px-3 sm:px-4 py-2 sm:py-3 text-left">Status</th>
+                            <th class="px-3 sm:px-4 py-2 sm:py-3 text-left hidden sm:table-cell">Start Time</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y">
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                         @foreach (var span in trace.Spans.OrderBy(s => s.StartTime))
                         {
-                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
-                                <td class="px-4 py-3">@span.Name</td>
-                                <td class="px-4 py-3 font-mono text-xs">@span.SpanId</td>
-                                <td class="px-4 py-3">@(span.DurationMs.HasValue ? $"{span.DurationMs}ms" : "-")</td>
-                                <td class="px-4 py-3">
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                <td class="px-3 sm:px-4 py-2 sm:py-3 max-w-[150px] sm:max-w-xs truncate">@span.Name</td>
+                                <td class="px-3 sm:px-4 py-2 sm:py-3 font-mono text-xs hidden md:table-cell">@span.SpanId</td>
+                                <td class="px-3 sm:px-4 py-2 sm:py-3 tabular-nums text-xs sm:text-sm">@(span.DurationMs.HasValue ? $"{span.DurationMs}ms" : "-")</td>
+                                <td class="px-3 sm:px-4 py-2 sm:py-3">
                                     @if (span.Status == SpanStatus.Error)
                                     {
-                                        <span class="status-error">Error</span>
+                                        <span class="badge badge-error">Error</span>
                                     }
                                     else if (span.Status == SpanStatus.Ok)
                                     {
-                                        <span class="status-ok">OK</span>
+                                        <span class="badge badge-success">OK</span>
                                     }
                                     else
                                     {
-                                        <span class="text-secondary">Unset</span>
+                                        <span class="badge badge-neutral">Unset</span>
                                     }
                                 </td>
-                                <td class="px-4 py-3 text-secondary">@span.StartTime.ToString("HH:mm:ss.fff")</td>
+                                <td class="px-3 sm:px-4 py-2 sm:py-3 text-secondary text-xs sm:text-sm hidden sm:table-cell tabular-nums">@span.StartTime.ToString("HH:mm:ss.fff")</td>
                             </tr>
                         }
                     </tbody>
@@ -167,20 +172,20 @@ else
         @if (trace.RelatedLogs.Count > 0)
         {
             <div class="card rounded-xl border">
-                <div class="p-4 border-b flex items-center justify-between">
-                    <h3 class="font-semibold">Related Logs (@trace.RelatedLogs.Count)</h3>
-                    <a href="@basePath/logs?traceId=@traceId" class="text-sm text-blue-600 hover:underline">View all</a>
+                <div class="p-3 sm:p-4 border-b flex items-center justify-between">
+                    <h3 class="font-semibold text-sm sm:text-base">Related Logs (@trace.RelatedLogs.Count)</h3>
+                    <a href="@basePath/logs?traceId=@traceId" class="text-xs sm:text-sm text-blue-600 hover:underline">View all</a>
                 </div>
-                <div class="divide-y">
+                <div class="divide-y divide-slate-100 dark:divide-slate-800">
                     @foreach (var log in trace.RelatedLogs.Take(10))
                     {
-                        <a href="@basePath/logs/@log.Id" class="block p-4 hover:bg-gray-50 dark:hover:bg-gray-800">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <span class="level-@log.Level.ToString().ToLower() font-medium text-sm">@log.Level</span>
-                                    <span class="truncate max-w-md">@log.Message</span>
+                        <a href="@basePath/logs/@log.Id" class="block p-3 sm:p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                                    <span class="badge @GetLevelBadgeClass(log.Level) flex-shrink-0">@log.Level</span>
+                                    <span class="truncate text-xs sm:text-sm">@log.Message</span>
                                 </div>
-                                <span class="text-xs text-secondary">@log.CreatedAt.ToString("HH:mm:ss.fff")</span>
+                                <span class="text-xs text-secondary whitespace-nowrap flex-shrink-0 tabular-nums">@log.CreatedAt.ToString("HH:mm:ss.fff")</span>
                             </div>
                         </a>
                     }
@@ -188,4 +193,20 @@ else
             </div>
         }
     </div>
+}
+
+@functions {
+    string GetLevelBadgeClass(LogLevel level)
+    {
+        return level switch
+        {
+            LogLevel.Trace => "badge-neutral",
+            LogLevel.Debug => "badge-info",
+            LogLevel.Information => "badge-success",
+            LogLevel.Warning => "badge-warning",
+            LogLevel.Error => "badge-error",
+            LogLevel.Critical => "badge-critical",
+            _ => "badge-neutral"
+        };
+    }
 }
